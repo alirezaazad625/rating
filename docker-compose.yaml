@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    networks:
+      - rating
+    healthcheck:
+      test: ["CMD","pg_isready -U myuser -d mydb"]
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - rating
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_NAME: mydb
+      DB_USER: myuser
+      DB_PASS: mypassword
+      DB_HOST: db
+      DB_PORT: 5432
+      PAGE_SIZE: 10
+
+networks:
+  rating: {}
