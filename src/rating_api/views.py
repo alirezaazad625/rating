@@ -34,7 +34,7 @@ class RatingUpsert(views.APIView):
                 user_id=request.get("user_id"),
                 post_id=request.get("post_id")
             ).first()
-            if limiter.hit(rate_limit):
+            if limiter.hit(rate_limit) or rating:
                 request = serializer.validated_data
                 previous_rating = None
                 if rating:
