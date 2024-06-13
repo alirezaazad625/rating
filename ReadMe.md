@@ -20,7 +20,7 @@ of the scope the project I ignored implementing auth and just filled the user_id
 For better performance I used simple solutions like pagination or database index but obviously with a high loads of
 users it does not perform very good so another solution here is using a in memory database as cache.
 
-### Update on read
+### Update on write
 
 For not decreasing the performance of our service while users requesting a post review overview(count and average) the
 calculation are happening at write time (so the overall calculation time is less because probably read operations are
