@@ -9,7 +9,7 @@ class RatingStatus(Enum):
 
     @classmethod
     def choices(cls):
-        return tuple((i.name, i.value) for i in cls)
+        return tuple((i.name, i.value[0]) for i in cls)
 
 
 class Rating(models.Model):
@@ -17,7 +17,7 @@ class Rating(models.Model):
     value = models.IntegerField()
     user_id = models.IntegerField()
     post_id = models.IntegerField()
-    status = models.CharField(max_length=255, choices=RatingStatus.choices())
+    status = models.CharField(max_length=255, choices=RatingStatus.choices(), default=RatingStatus.APPROVED)
 
     class Meta:
         indexes = [

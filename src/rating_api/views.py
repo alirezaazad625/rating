@@ -30,12 +30,12 @@ class RatingUpsert(views.APIView):
     def post(self, request, *args, **kwargs):
         serializer = UpsertRatingSerializer(data=request.data)
         if serializer.is_valid():
+            request = serializer.validated_data
             rating: Rating = Rating.objects.filter(
                 user_id=request.get("user_id"),
                 post_id=request.get("post_id")
             ).first()
             if limiter.hit(rate_limit) or rating:
-                request = serializer.validated_data
                 previous_rating = None
                 if rating:
                     previous_rating = rating.value
@@ -70,7 +70,7 @@ class RatingApprove(views.APIView):
 
 
 class RatingListView(generics.ListAPIView):
-    queryset = Rating.objects.first(status=RatingStatus.APPROVED).all()
+    queryset = Rating.objects.filter(status=RatingStatus.APPROVED).all()
     serializer_class = UpsertRatingSerializer
 
 
