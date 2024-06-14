@@ -27,6 +27,7 @@ class RatingOverview(views.APIView):
 
 
 class RatingUpsert(views.APIView):
+    @transaction.atomic
     def post(self, request, *args, **kwargs):
         serializer = UpsertRatingSerializer(data=request.data)
         if serializer.is_valid():
@@ -54,19 +55,22 @@ class RatingUpsert(views.APIView):
                     status=RatingStatus.PENDING,
                     value=request.get("value"),
                 )
-                rating.save()
+            rating.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RatingApprove(views.APIView):
-    def post(self, request, post_id, user_id, *args, **kwargs):
+    @transaction.atomic
+    def post(self, request, post_id: int, user_id: int, *args, **kwargs):
         rating: Rating = Rating.objects.filter(
             user_id=user_id,
             post_id=post_id
         ).get()
         rating.status = RatingStatus.APPROVED
+        rating.save()
         update_rating(rating=rating)
+        return Response(None, status=status.HTTP_200_OK)
 
 
 class RatingListView(generics.ListAPIView):
@@ -74,7 +78,6 @@ class RatingListView(generics.ListAPIView):
     serializer_class = UpsertRatingSerializer
 
 
-@transaction.atomic
 def update_rating(rating: Rating, previous_rating: Optional[int] = None) -> None:
     post_rating: PostRating = PostRating.objects.filter(post_id=rating.post_id).first()
     if post_rating:
@@ -85,5 +88,4 @@ def update_rating(rating: Rating, previous_rating: Optional[int] = None) -> None
             post_rating.count += 1
     else:
         post_rating = PostRating(post_id=rating.post_id, sum=rating.value, count=1)
-    rating.save()
     post_rating.save()
